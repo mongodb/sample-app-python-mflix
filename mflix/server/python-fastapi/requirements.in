@@ -1,0 +1,57 @@
+# ==============================================================================
+# 1. CORE WEB FRAMEWORK & ASGI SERVER
+# FastAPI and its main components.
+# ------------------------------------------------------------------------------
+fastapi~=0.120.1        # The main web framework
+starlette~=0.49.1       # FastAPI's underlying ASGI toolkit
+uvicorn~=0.38.0         # Production-ready ASGI server
+uvloop~=0.22.0          # Optional: High-performance event loop for uvicorn
+websockets~=15.0.0      # For WebSocket support
+watchfiles~=1.1.0       # For hot-reloading in development
+
+# ==============================================================================
+# 2. DATA VALIDATION & CORE UTILITIES
+# Primary libraries for data models and environment config.
+# ------------------------------------------------------------------------------
+pydantic~=2.12.0        # Data validation and settings management
+python-dotenv~=1.1.0    # For loading configuration from .env files
+python-multipart~=0.0.0 # For parsing form data and file uploads
+PyYAML~=6.0.0           # For handling YAML configuration or data
+
+# ==============================================================================
+# 3. DATABASE & CONNECTIVITY
+# Database driver and necessary utilities.
+# ------------------------------------------------------------------------------
+pymongo~=4.15.0         # MongoDB driver
+dnspython~=2.8.0        # Required for SRV record lookups by pymongo (e.g., MongoDB Atlas)
+
+# ==============================================================================
+# 4. HTTP CLIENT & UTILITIES
+# Primary libraries for making external HTTP requests.
+# ------------------------------------------------------------------------------
+httpx~=0.28.0           # Asynchronous HTTP client for requests to external APIs
+email-validator~=2.3.0  # Utility for validating email addresses
+voyageai~=0.3.5         # Vector embeddings API client
+
+# ==============================================================================
+# 5. CLI & DEVELOPMENT TOOLS
+# Tools for building command-line interfaces for management tasks.
+# ------------------------------------------------------------------------------
+typer~=0.20.0           # Library for creating command-line applications
+fastapi-cli~=0.0.0      # Tools to run and manage FastAPI projects
+fastapi-cloud-cli~=0.3.0 # Tools for cloud deployment (specific to your pipeline)
+
+# ==============================================================================
+# 6. TESTING & MONITORING
+# Frameworks for ensuring code quality and production health.
+# ------------------------------------------------------------------------------
+pytest~=8.4.0           # Primary testing framework
+pytest-asyncio~=1.2.0   # Plugin to make asynchronous tests easy with pytest
+sentry-sdk~=2.42.0      # For error tracking and performance monitoring
+
+# ==============================================================================
+# 7. LOGGING AND TERMINAL OUTPUT
+# Libraries for rich console output and debugging.
+# ------------------------------------------------------------------------------
+rich~=14.2.0            # For rich, formatted terminal output
+rich-toolkit~=0.15.0    # Extensions for the 'rich' library
