@@ -1,0 +1,17 @@
+#-------------------------
+# Python / FastAPI backend
+#-------------------------
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+
+# Environment variables
+.env
+
+#MacOS files
+.DS_Store

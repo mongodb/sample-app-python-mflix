@@ -1,0 +1,52 @@
+#-------
+# Common
+#-------
+
+# Environment variables
+.env
+!.env.example
+*.pem
+
+#MacOS files
+.DS_Store
+
+#-------------------------
+# Python / FastAPI backend
+#-------------------------
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+
+#------------------------
+# Next.js Client frontend
+#------------------------
+
+# dependencies
+/node_modules
+package-lock.json
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# Logs
+logs
+*.log
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
