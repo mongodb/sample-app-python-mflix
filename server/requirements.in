@@ -32,6 +32,7 @@ dnspython~=2.8.0        # Required for SRV record lookups by pymongo (e.g., Mong
 httpx~=0.28.0           # Asynchronous HTTP client for requests to external APIs
 email-validator~=2.3.0  # Utility for validating email addresses
 voyageai~=0.3.5         # Vector embeddings API client
+urllib3>=2.6.0          # HTTP library
 
 # ==============================================================================
 # 5. CLI & DEVELOPMENT TOOLS
