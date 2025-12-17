@@ -56,3 +56,9 @@ sentry-sdk~=2.42.0      # For error tracking and performance monitoring
 # ------------------------------------------------------------------------------
 rich~=14.2.0            # For rich, formatted terminal output
 rich-toolkit~=0.15.0    # Extensions for the 'rich' library
+
+# ==============================================================================
+# 8. TRANSITIVE DEPENDENCY CONSTRAINTS
+# Minimum versions for indirect dependencies.
+# ------------------------------------------------------------------------------
+filelock>=3.20.1        # Transitive dep via huggingface-hub
