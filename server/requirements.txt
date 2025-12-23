@@ -93,7 +93,7 @@ jsonpatch==1.33
     # via langchain-core
 jsonpointer==3.0.0
     # via jsonpatch
-langchain-core==1.0.7
+langchain-core==1.2.5
     # via langchain-text-splitters
 langchain-text-splitters==1.0.0
     # via voyageai
