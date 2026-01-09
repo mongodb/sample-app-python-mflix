@@ -9,8 +9,10 @@ an actual database connection or server instance.
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from bson import ObjectId
+from fastapi import HTTPException
 
 from src.models.models import CreateMovieRequest, UpdateMovieRequest
+from src.utils.exceptions import VoyageAuthError, VoyageAPIError
 
 
 # Test constants
@@ -57,21 +59,23 @@ class TestGetMovieById:
 
         # Import and call the route handler
         from src.routers.movies import get_movie_by_id
-        result = await get_movie_by_id(TEST_MOVIE_ID)
+        with pytest.raises(HTTPException) as e:
+            await get_movie_by_id(TEST_MOVIE_ID)
 
         # Assertions
-        assert result.success is False
-        assert "not found" in result.message.lower()
+        assert e.value.status_code == 404
+        assert "no movie found" in str(e.value.detail).lower()
 
     async def test_get_movie_by_id_invalid_id(self):
         """Should return error when invalid ObjectId format is provided."""
         # Import and call the route handler
         from src.routers.movies import get_movie_by_id
-        result = await get_movie_by_id(INVALID_MOVIE_ID)
+        with pytest.raises(HTTPException) as e:
+            await get_movie_by_id(INVALID_MOVIE_ID)
 
         # Assertions
-        assert result.success is False
-        assert "invalid" in result.message.lower()
+        assert e.value.status_code == 400
+        assert " not a valid" in str(e.value.detail).lower()
 
     @patch('src.routers.movies.get_collection')
     async def test_get_movie_by_id_database_error(self, mock_get_collection):
@@ -83,11 +87,12 @@ class TestGetMovieById:
 
         # Import and call the route handler
         from src.routers.movies import get_movie_by_id
-        result = await get_movie_by_id(TEST_MOVIE_ID)
+        with pytest.raises(HTTPException) as e:
+            await get_movie_by_id(TEST_MOVIE_ID)
 
         # Assertions
-        assert result.success is False
-        assert "error" in result.message.lower()
+        assert e.value.status_code == 500
+        assert "error" in str(e.value.detail).lower()
 
 
 @pytest.mark.unit
@@ -140,11 +145,12 @@ class TestCreateMovie:
         # Create request
         from src.routers.movies import create_movie
         movie_request = CreateMovieRequest(title="New Movie")
-        result = await create_movie(movie_request)
+        with pytest.raises(HTTPException) as e:
+            await create_movie(movie_request)
 
         # Assertions
-        assert result.success is False
-        assert "error" in result.message.lower()
+        assert e.value.status_code == 500
+        assert "error" in str(e.value.detail).lower()
 
 
 @pytest.mark.unit
@@ -194,22 +200,26 @@ class TestUpdateMovie:
         # Create request
         from src.routers.movies import update_movie
         update_request = UpdateMovieRequest(title="Updated Movie")
-        result = await update_movie(update_request, TEST_MOVIE_ID)
-
-        # Assertions
-        assert result.success is False
-        assert "was found" in result.message.lower() or "not found" in result.message.lower()
+        
+        with pytest.raises(HTTPException) as e:
+            await update_movie(update_request, TEST_MOVIE_ID)
+            
+            #Assertions
+        assert e.value.status_code == 404
+        assert "no movie" in str(e.value.detail.lower())
 
     async def test_update_movie_invalid_id(self):
         """Should return error when invalid ObjectId format is provided."""
         # Create request
         from src.routers.movies import update_movie
         update_request = UpdateMovieRequest(title="Updated Movie")
-        result = await update_movie(update_request, INVALID_MOVIE_ID)
+        
+        with pytest.raises(HTTPException) as e:
+            await update_movie(update_request, INVALID_MOVIE_ID)
 
-        # Assertions
-        assert result.success is False
-        assert "invalid" in result.message.lower()
+            # Assertions
+        assert e.value.status_code == 400
+        assert "invalid" in str(e.value.detail.lower())
 
 
 @pytest.mark.unit
@@ -248,21 +258,23 @@ class TestDeleteMovie:
 
         # Call the route handler
         from src.routers.movies import delete_movie_by_id
-        result = await delete_movie_by_id(TEST_MOVIE_ID)
+        with pytest.raises(HTTPException) as e:
+            await delete_movie_by_id(TEST_MOVIE_ID)
 
-        # Assertions
-        assert result.success is False
-        assert "not found" in result.message.lower()
+            # Assertions
+        assert e.value.status_code == 404
+        assert "no movie" in str(e.value.detail.lower())
 
     async def test_delete_movie_invalid_id(self):
         """Should return error when invalid ObjectId format is provided."""
         # Call the route handler
         from src.routers.movies import delete_movie_by_id
-        result = await delete_movie_by_id(INVALID_MOVIE_ID)
-
+        with pytest.raises(HTTPException) as e:
+            await delete_movie_by_id(INVALID_MOVIE_ID)
+        
         # Assertions
-        assert result.success is False
-        assert "invalid" in result.message.lower()
+        assert e.value.status_code == 400
+        assert "invalid movie id" in str(e.value.detail.lower())
 
     @patch('src.routers.movies.get_collection')
     async def test_delete_movie_database_error(self, mock_get_collection):
@@ -274,14 +286,12 @@ class TestDeleteMovie:
 
         # Call the route handler
         from src.routers.movies import delete_movie_by_id
-        result = await delete_movie_by_id(TEST_MOVIE_ID)
+        with pytest.raises(HTTPException) as e:
+            await delete_movie_by_id(TEST_MOVIE_ID)
 
-        # Assertions
-        assert result.success is False
-        assert "error" in result.message.lower()
-
-
-
+            # Assertions
+        assert e.value.status_code == 500
+        assert "error" in str(e.value.detail.lower())
 
 @pytest.mark.unit
 @pytest.mark.asyncio
@@ -384,11 +394,12 @@ class TestGetAllMovies:
 
         # Call the route handler
         from src.routers.movies import get_all_movies
-        result = await get_all_movies()
+        with pytest.raises(HTTPException) as e: 
+            await get_all_movies()
 
         # Assertions
-        assert result.success is False
-        assert "error" in result.message.lower()
+        assert e.value.status_code == 500
+        assert "error" in str(e.value.detail.lower())
 
 
 @pytest.mark.unit
@@ -430,11 +441,12 @@ class TestBatchOperations:
 
         # Create request with empty list
         from src.routers.movies import create_movies_batch
-        result = await create_movies_batch([])
+        with pytest.raises(HTTPException) as e:
+            await create_movies_batch([])
 
         # Assertions
-        assert result.success is False
-        assert "empty" in result.message.lower()
+        assert e.value.status_code == 400
+        assert "empty" in str(e.value.detail.lower())
 
     @patch('src.routers.movies.get_collection')
     async def test_delete_movies_batch_success(self, mock_get_collection):
@@ -464,11 +476,12 @@ class TestBatchOperations:
         # Create request without filter
         from src.routers.movies import delete_movies_batch
         request_body = {}
-        result = await delete_movies_batch(request_body)
+        with pytest.raises(HTTPException) as e:
+            await delete_movies_batch(request_body)
 
         # Assertions
-        assert result.success is False
-        assert "filter" in result.message.lower()
+        assert e.value.status_code == 400
+        assert "filter" in e.value.detail.lower()
 
 
 
@@ -510,21 +523,23 @@ class TestFindAndDeleteMovie:
 
         # Call the route handler
         from src.routers.movies import find_and_delete_movie
-        result = await find_and_delete_movie(TEST_MOVIE_ID)
+        with pytest.raises(HTTPException) as e:
+            await find_and_delete_movie(TEST_MOVIE_ID)
 
         # Assertions
-        assert result.success is False
-        assert "not found" in result.message.lower()
+        assert e.value.status_code == 404
+        assert "no movie" in str(e.value.detail.lower())
 
     async def test_find_and_delete_invalid_id(self):
         """Should return error when invalid ObjectId format is provided."""
         # Call the route handler
         from src.routers.movies import find_and_delete_movie
-        result = await find_and_delete_movie(INVALID_MOVIE_ID)
+        with pytest.raises(HTTPException) as e:
+            await find_and_delete_movie(INVALID_MOVIE_ID)
 
         # Assertions
-        assert result.success is False
-        assert "invalid" in result.message.lower()
+        assert e.value.status_code == 400
+        assert "invalid" in str(e.value.detail.lower())
 
 
 @pytest.mark.unit
@@ -565,11 +580,12 @@ class TestBatchUpdate:
         # Create request without filter
         from src.routers.movies import update_movies_batch
         request_body = {"update": {"$set": {"rated": "PG-13"}}}
-        result = await update_movies_batch(request_body)
+        with pytest.raises(HTTPException) as e:
+            await update_movies_batch(request_body)
 
         # Assertions
-        assert result.success is False
-        assert "filter" in result.message.lower() or "required" in result.message.lower()
+        assert e.value.status_code == 400
+        assert "filter" in str(e.value.detail).lower()
 
     @patch('src.routers.movies.get_collection')
     async def test_update_movies_batch_missing_update(self, mock_get_collection):
@@ -579,11 +595,12 @@ class TestBatchUpdate:
         # Create request without update
         from src.routers.movies import update_movies_batch
         request_body = {"filter": {"year": 2020}}
-        result = await update_movies_batch(request_body)
+        with pytest.raises(HTTPException) as e:
+            await update_movies_batch(request_body)
 
         # Assertions
-        assert result.success is False
-        assert "update" in result.message.lower() or "required" in result.message.lower()
+        assert e.value.status_code == 400
+        assert "update" in str(e.value.detail).lower()
 
     @patch('src.routers.movies.get_collection')
     async def test_update_movies_batch_no_matches(self, mock_get_collection):
@@ -683,20 +700,22 @@ class TestSearchMovies:
     async def test_search_movies_no_parameters(self):
         """Should return error when no search parameters provided."""
         from src.routers.movies import search_movies
-        result = await search_movies(search_operator="must")
+        with pytest.raises(HTTPException) as e:
+            await search_movies(search_operator="must")
 
         # Assertions
-        assert result.success is False
-        assert result.error.code == "DATABASE_ERROR"
+        assert e.value.status_code == 400
+        assert "one search parameter" in str(e.value.detail).lower()
 
     async def test_search_movies_invalid_operator(self):
         """Should return error for invalid search operator."""
         from src.routers.movies import search_movies
-        result = await search_movies(plot="test", search_operator="invalid")
+        with pytest.raises(HTTPException) as e:
+            await search_movies(plot="test", search_operator="invalid")
 
         # Assertions
-        assert result.success is False
-        assert result.error.code == "INVALID_SEARCH_OPERATOR"
+        assert e.value.status_code == 400
+        assert "invalid search operator" in str(e.value.detail).lower()
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_search_movies_database_error(self, mock_execute_aggregation):
@@ -706,11 +725,12 @@ class TestSearchMovies:
 
         # Call the route handler
         from src.routers.movies import search_movies
-        result = await search_movies(plot="test", search_operator="must")
+        with pytest.raises(HTTPException) as e:
+            await search_movies(plot="test", search_operator="must")
 
         # Assertions
-        assert result.success is False
-        assert result.error.code == "DATABASE_ERROR"
+        assert e.value.status_code == 500
+        assert "error" in str(e.value.detail).lower()
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_search_movies_empty_results(self, mock_execute_aggregation):
@@ -744,12 +764,21 @@ class TestVectorSearchMovies:
 
         # Call the route handler
         from src.routers.movies import vector_search_movies
-        result = await vector_search_movies(q="action movie")
+        from fastapi.responses import JSONResponse
+
+        response = await vector_search_movies(q="action movie")
 
         # Assertions
-        assert result.success is False
-        assert result.error.code == "SERVICE_UNAVAILABLE"
-        assert "VOYAGE_API_KEY" in result.error.details
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+
+        # Parse the response body
+        import json
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "SERVICE_UNAVAILABLE"
+        assert "VOYAGE_API_KEY not configured" in body["message"]
+        
 
     @patch('src.routers.movies.voyage_ai_available')
     @patch('src.routers.movies.voyageai.Client')
@@ -798,11 +827,12 @@ class TestVectorSearchMovies:
 
         # Call the route handler
         from src.routers.movies import vector_search_movies
-        result = await vector_search_movies(q="action movie")
+        with pytest.raises(HTTPException) as e:
+            await vector_search_movies(q="action movie")
 
         # Assertions
-        assert result.success is False
-        assert result.error.code == "INTERNAL_SERVER_ERROR"
+        assert e.value.status_code == 500
+        assert "error" in str(e.value.detail).lower()
 
     @patch('src.routers.movies.voyage_ai_available')
     @patch('src.routers.movies.voyageai.Client')
@@ -896,12 +926,12 @@ class TestAggregationReportingByComments:
     async def test_aggregate_movies_invalid_movie_id(self):
         """Should return error for invalid movie ID format."""
         from src.routers.movies import aggregate_movies_recent_commented
-        result = await aggregate_movies_recent_commented(movie_id="invalid_id")
+        with pytest.raises(HTTPException) as e:
+            await aggregate_movies_recent_commented(movie_id="invalid_id")
 
         # Assertions
-        assert result.success is False
-        assert result.error.code == "INTERNAL_SERVER_ERROR"
-        assert "ObjectId" in result.error.details
+        assert e.value.status_code == 400
+        assert "movie_id is not" in str(e.value.detail).lower()
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_aggregate_movies_database_error(self, mock_execute_aggregation):
@@ -911,11 +941,12 @@ class TestAggregationReportingByComments:
 
         # Call the route handler
         from src.routers.movies import aggregate_movies_recent_commented
-        result = await aggregate_movies_recent_commented(limit=10, movie_id=None)
+        with pytest.raises(HTTPException) as e:
+            await aggregate_movies_recent_commented(limit=10, movie_id=None)
 
         # Assertions
-        assert result.success is False
-        assert result.error.code == "INTERNAL_SERVER_ERROR"
+        assert e.value.status_code == 500
+        assert "error" in str(e.value.detail).lower()
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_aggregate_movies_empty_results(self, mock_execute_aggregation):
@@ -966,11 +997,12 @@ class TestAggregationReportingByYear:
 
         # Call the route handler
         from src.routers.movies import aggregate_movies_by_year
-        result = await aggregate_movies_by_year()
+        with pytest.raises(HTTPException) as e:
+            await aggregate_movies_by_year()
 
         # Assertions
-        assert result.success is False
-        assert result.error.code == "INTERNAL_SERVER_ERROR"
+        assert e.value.status_code == 500
+        assert "error" in str(e.value.detail).lower()
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_aggregate_movies_by_year_empty_results(self, mock_execute_aggregation):
@@ -1039,11 +1071,12 @@ class TestAggregationReportingByDirectors:
 
         # Call the route handler
         from src.routers.movies import aggregate_directors_most_movies
-        result = await aggregate_directors_most_movies()
+        with pytest.raises(HTTPException) as e: 
+            await aggregate_directors_most_movies()
 
         # Assertions
-        assert result.success is False
-        assert result.error.code == "INTERNAL_SERVER_ERROR"
+        assert e.value.status_code == 500
+        assert "error" in str(e.value.detail).lower()
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_aggregate_directors_empty_results(self, mock_execute_aggregation):
