@@ -127,22 +127,9 @@ class SuccessResponse(BaseModel, Generic[T]):
     timestamp: str
     pagination: Optional[Pagination] = None
 
-
-class ErrorDetails(BaseModel):
-    message: str
-    code: Optional[str]
-    details: Optional[Any] = None
-
 class BatchUpdateRequest(BaseModel):
     filter: MovieFilter
     update: UpdateMovieRequest
 
 class BatchDeleteRequest(BaseModel):
     filter: MovieFilter
-
-class ErrorResponse(BaseModel):
-    success: bool = False
-    message: str
-    error: ErrorDetails
-    timestamp: str
-    

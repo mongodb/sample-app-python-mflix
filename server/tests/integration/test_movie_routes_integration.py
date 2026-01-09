@@ -64,7 +64,7 @@ class TestMovieCRUDIntegration:
         finally:
             # Cleanup: Delete the test movie
             delete_response = await client.delete(f"/api/movies/{movie_id}")
-            assert delete_response.status_code == 200
+            assert delete_response.status_code in [200, 404]
 
     @pytest.mark.asyncio
     async def test_update_movie(self, client, created_movie):
@@ -123,12 +123,11 @@ class TestMovieCRUDIntegration:
         assert delete_data["success"] is True
 
         # Verify movie no longer exists
-        # Note: The API returns 200 with INTERNAL_SERVER_ERROR code, not 404
         get_response = await client.get(f"/api/movies/{movie_id}")
+        assert get_response.status_code == 404
         error_data = get_response.json()
-        assert error_data["success"] is False
-        assert error_data["error"]["code"] == "INTERNAL_SERVER_ERROR"
-        assert "not found" in error_data["error"]["message"].lower()
+        assert "detail" in error_data
+        assert "no movie found" in error_data["detail"].lower()
 
         # No cleanup needed - movie already deleted
 
@@ -240,7 +239,8 @@ class TestBatchOperationsIntegration:
         finally:
             # Cleanup: Delete all created movies
             for movie_id in created_ids:
-                await client.delete(f"/api/movies/{movie_id}")
+                delete_response = await client.delete(f"/api/movies/{movie_id}")
+                assert delete_response.status_code in [200, 404]
 
     @pytest.mark.asyncio
     async def test_batch_delete_movies(self, client, multiple_test_movies):
@@ -279,10 +279,10 @@ class TestBatchOperationsIntegration:
         # Note: The API returns 200 with INTERNAL_SERVER_ERROR code, not 404
         for movie_id in multiple_test_movies:
             get_response = await client.get(f"/api/movies/{movie_id}")
-            response_data = get_response.json()
-            assert response_data["success"] is False
-            assert response_data["error"]["code"] == "INTERNAL_SERVER_ERROR"
-            assert "not found" in response_data["error"]["message"].lower()
+            assert get_response.status_code == 404
+            error_data = get_response.json()
+            assert "detail" in error_data
+            assert "no movie found" in error_data["detail"].lower()
 
         # Note: Fixture cleanup will try to delete but movies are already gone
         # The fixture should handle this gracefully

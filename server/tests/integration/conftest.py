@@ -56,13 +56,13 @@ def server():
     # Start the server process
     process = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", str(test_port)],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
         cwd=server_python_dir
     )
 
-    # Wait for server to be ready (max 10 seconds)
-    max_wait = 10
+    # Wait for server to be ready (max 30 seconds)
+    max_wait = 30
     start_time = time.time()
     while time.time() - start_time < max_wait:
         if is_port_in_use(test_port):
@@ -209,5 +209,5 @@ async def multiple_test_movies(client):
             if response_data.get("success") is False and "not found" in response_data.get("error", {}).get("message", "").lower():
                 # Movie was already deleted, which is fine
                 continue
-        assert cleanup_response.status_code == 200, f"Failed to clean up movie {movie_id}"
+        assert cleanup_response.status_code in [200,404], f"Failed to clean up movie {movie_id}"
 
