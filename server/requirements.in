@@ -61,5 +61,5 @@ rich-toolkit~=0.15.0    # Extensions for the 'rich' library
 # 8. TRANSITIVE DEPENDENCY CONSTRAINTS
 # Minimum versions for indirect dependencies.
 # ------------------------------------------------------------------------------
-filelock>=3.20.1        # Transitive dep via huggingface-hub
+filelock>=3.20.3        # Transitive dep via huggingface-hub
 aiohttp>=3.13.3         # Transitive dep via voyageai
