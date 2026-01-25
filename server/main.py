@@ -6,6 +6,8 @@ from src.routers import movies
 from src.database.mongo_client import db, get_collection
 from src.utils.exceptions import VoyageAuthError, VoyageAPIError
 from src.utils.errorResponse import create_error_response
+from src.utils.logger import logger
+from src.middleware.request_logging import RequestLoggingMiddleware
 
 import os
 from dotenv import load_dotenv
@@ -21,12 +23,12 @@ async def lifespan(app: FastAPI):
     await ensure_vector_search_index()
     await ensure_standard_index()
 
-    # Print server information
-    print(f"\n{'='*60}")
-    print(f"  Server started at http://127.0.0.1:3001")
-    print(f"  Documentation at http://127.0.0.1:3001/docs")
-    print(f"  Interactive API docs at http://127.0.0.1:3001/redoc")
-    print(f"{'='*60}\n")
+    # Log server information
+    logger.info("=" * 60)
+    logger.info("  Server started at http://127.0.0.1:3001")
+    logger.info("  Documentation at http://127.0.0.1:3001/docs")
+    logger.info("  Interactive API docs at http://127.0.0.1:3001/redoc")
+    logger.info("=" * 60)
 
     yield
     # Shutdown: Clean up resources if needed
@@ -133,8 +135,8 @@ async def ensure_standard_index():
             await comments_collection.create_index([("movie_id", 1)], name=standard_index_name)
 
     except Exception as e:
-        print(f"Failed to create standard index on 'comments' collection: {str(e)}. ")
-        print(f"Performance may be degraded. Please check your MongoDB configuration.")
+        logger.warning(f"Failed to create standard index on 'comments' collection: {str(e)}")
+        logger.warning("Performance may be degraded. Please check your MongoDB configuration.")
 
 
 app = FastAPI(lifespan=lifespan)
@@ -173,6 +175,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add request logging middleware
+app.add_middleware(RequestLoggingMiddleware)
 
 app.include_router(movies.router, prefix="/api/movies", tags=["movies"])
 

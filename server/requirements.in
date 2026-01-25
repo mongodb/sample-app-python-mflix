@@ -22,7 +22,7 @@ PyYAML~=6.0.0           # For handling YAML configuration or data
 # 3. DATABASE & CONNECTIVITY
 # Database driver and necessary utilities.
 # ------------------------------------------------------------------------------
-pymongo~=4.15.0         # MongoDB driver
+pymongo~=4.16.0         # MongoDB driver
 dnspython~=2.8.0        # Required for SRV record lookups by pymongo (e.g., MongoDB Atlas)
 
 # ==============================================================================
@@ -63,3 +63,4 @@ rich-toolkit~=0.15.0    # Extensions for the 'rich' library
 # ------------------------------------------------------------------------------
 filelock>=3.20.3        # Transitive dep via huggingface-hub
 aiohttp>=3.13.3         # Transitive dep via voyageai
+orjson>=3.11.5          # Transitive dep via langsmith (CVE fix)

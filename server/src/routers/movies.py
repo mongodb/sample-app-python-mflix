@@ -32,6 +32,10 @@ Implemented Endpoints:
     Search movies using MongoDB Vector Search to enable semantic search capabilities over
     the plot field.
 
+- GET /api/movies/genres :
+    Retrieve all distinct genre values from the movies collection.
+    Demonstrates the distinct() operation.
+
 - GET /api/movies/{id} :
     Retrieve a single movie by its ID.
 
@@ -426,6 +430,41 @@ async def vector_search_movies(
             status_code=500,
             detail=f"Error performing vector search: {str(e)}"
         )
+
+"""
+    GET /api/movies/genres
+
+    Retrieve all distinct genre values from the movies collection.
+    Demonstrates the distinct() operation.
+
+    Returns:
+        SuccessResponse[List[str]]: A response object containing the list of unique genres, sorted alphabetically.
+"""
+
+@router.get("/genres",
+            response_model=SuccessResponse[List[str]],
+            status_code=200,
+            summary="Retrieve all distinct genres from the movies collection.")
+async def get_distinct_genres():
+    movies_collection = get_collection("movies")
+
+    try:
+        # Use distinct() to get all unique values from the genres array field
+        # MongoDB automatically flattens array fields when using distinct()
+        genres = await movies_collection.distinct("genres")
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error occurred: {str(e)}"
+        )
+
+    # Filter out null/empty values and sort alphabetically
+    valid_genres = sorted([
+        genre for genre in genres
+        if isinstance(genre, str) and len(genre) > 0
+    ])
+
+    return create_success_response(valid_genres, f"Found {len(valid_genres)} distinct genres")
 
 """
     GET /api/movies/{id}

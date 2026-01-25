@@ -1091,3 +1091,82 @@ class TestAggregationReportingByDirectors:
         # Assertions
         assert result.success is True
         assert len(result.data) == 0
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestGetDistinctGenres:
+    """Tests for GET /api/movies/genres endpoint."""
+
+    @patch('src.routers.movies.get_collection')
+    async def test_get_distinct_genres_success(self, mock_get_collection):
+        """Should return list of distinct genres sorted alphabetically."""
+        # Setup mock
+        mock_collection = AsyncMock()
+        mock_collection.distinct.return_value = ["Drama", "Action", "Comedy", "Horror", "Sci-Fi"]
+        mock_get_collection.return_value = mock_collection
+
+        # Call the route handler
+        from src.routers.movies import get_distinct_genres
+        result = await get_distinct_genres()
+
+        # Assertions
+        assert result.success is True
+        assert len(result.data) == 5
+        # Verify alphabetical sorting
+        assert result.data == ["Action", "Comedy", "Drama", "Horror", "Sci-Fi"]
+        mock_collection.distinct.assert_called_once_with("genres")
+
+    @patch('src.routers.movies.get_collection')
+    async def test_get_distinct_genres_empty_list(self, mock_get_collection):
+        """Should return empty list when no genres exist."""
+        # Setup mock
+        mock_collection = AsyncMock()
+        mock_collection.distinct.return_value = []
+        mock_get_collection.return_value = mock_collection
+
+        # Call the route handler
+        from src.routers.movies import get_distinct_genres
+        result = await get_distinct_genres()
+
+        # Assertions
+        assert result.success is True
+        assert len(result.data) == 0
+
+    @patch('src.routers.movies.get_collection')
+    async def test_get_distinct_genres_filters_null_and_empty(self, mock_get_collection):
+        """Should filter out null and empty genre values."""
+        # Setup mock
+        mock_collection = AsyncMock()
+        mock_collection.distinct.return_value = ["Action", None, "", "Drama", "Comedy"]
+        mock_get_collection.return_value = mock_collection
+
+        # Call the route handler
+        from src.routers.movies import get_distinct_genres
+        result = await get_distinct_genres()
+
+        # Assertions
+        assert result.success is True
+        assert len(result.data) == 3
+        assert "Action" in result.data
+        assert "Drama" in result.data
+        assert "Comedy" in result.data
+        assert None not in result.data
+        assert "" not in result.data
+
+    @patch('src.routers.movies.get_collection')
+    async def test_get_distinct_genres_database_error(self, mock_get_collection):
+        """Should handle database errors gracefully."""
+        # Setup mock to raise exception
+        mock_collection = AsyncMock()
+        mock_collection.distinct.side_effect = Exception("Database connection failed")
+        mock_get_collection.return_value = mock_collection
+
+        # Call the route handler
+        from src.routers.movies import get_distinct_genres
+        with pytest.raises(HTTPException) as exc_info:
+            await get_distinct_genres()
+
+        # Assertions
+        assert exc_info.value.status_code == 500
+        assert "Database error" in str(exc_info.value.detail)
