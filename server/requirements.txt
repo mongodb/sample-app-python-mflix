@@ -155,7 +155,7 @@ python-dotenv==1.1.1
     # via
     #   -r requirements.in
     #   uvicorn
-python-multipart==0.0.20
+python-multipart==0.0.22
     # via -r requirements.in
 pyyaml==6.0.3
     # via
