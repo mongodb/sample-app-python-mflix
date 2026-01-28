@@ -15,7 +15,7 @@ watchfiles~=1.1.0       # For hot-reloading in development
 # ------------------------------------------------------------------------------
 pydantic~=2.12.0        # Data validation and settings management
 python-dotenv~=1.1.0    # For loading configuration from .env files
-python-multipart~=0.0.0 # For parsing form data and file uploads
+python-multipart~=0.0.22 # For parsing form data and file uploads
 PyYAML~=6.0.0           # For handling YAML configuration or data
 
 # ==============================================================================
