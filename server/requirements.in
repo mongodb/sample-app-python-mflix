@@ -2,21 +2,21 @@
 # 1. CORE WEB FRAMEWORK & ASGI SERVER
 # FastAPI and its main components.
 # ------------------------------------------------------------------------------
-fastapi~=0.120.1        # The main web framework
-starlette~=0.49.1       # FastAPI's underlying ASGI toolkit
+fastapi~=0.120.4        # The main web framework
+starlette~=0.49.3       # FastAPI's underlying ASGI toolkit
 uvicorn~=0.38.0         # Production-ready ASGI server
-uvloop~=0.22.0          # Optional: High-performance event loop for uvicorn
-websockets~=15.0.0      # For WebSocket support
-watchfiles~=1.1.0       # For hot-reloading in development
+uvloop~=0.22.1          # Optional: High-performance event loop for uvicorn
+websockets~=15.0.1      # For WebSocket support
+watchfiles~=1.1.1       # For hot-reloading in development
 
 # ==============================================================================
 # 2. DATA VALIDATION & CORE UTILITIES
 # Primary libraries for data models and environment config.
 # ------------------------------------------------------------------------------
-pydantic~=2.12.0        # Data validation and settings management
-python-dotenv~=1.1.0    # For loading configuration from .env files
-python-multipart~=0.0.22 # For parsing form data and file uploads
-PyYAML~=6.0.0           # For handling YAML configuration or data
+pydantic~=2.12.5        # Data validation and settings management
+python-dotenv~=1.1.1    # For loading configuration from .env files
+python-multipart>=0.0.22 # For parsing form data and file uploads
+PyYAML~=6.0.3           # For handling YAML configuration or data
 
 # ==============================================================================
 # 3. DATABASE & CONNECTIVITY
@@ -29,33 +29,33 @@ dnspython~=2.8.0        # Required for SRV record lookups by pymongo (e.g., Mong
 # 4. HTTP CLIENT & UTILITIES
 # Primary libraries for making external HTTP requests.
 # ------------------------------------------------------------------------------
-httpx~=0.28.0           # Asynchronous HTTP client for requests to external APIs
+httpx~=0.28.1           # Asynchronous HTTP client for requests to external APIs
 email-validator~=2.3.0  # Utility for validating email addresses
-voyageai~=0.3.5         # Vector embeddings API client
+voyageai~=0.3.7         # Vector embeddings API client
 urllib3>=2.6.3          # HTTP library
 
 # ==============================================================================
 # 5. CLI & DEVELOPMENT TOOLS
 # Tools for building command-line interfaces for management tasks.
 # ------------------------------------------------------------------------------
-typer~=0.20.0           # Library for creating command-line applications
-fastapi-cli~=0.0.0      # Tools to run and manage FastAPI projects
-fastapi-cloud-cli~=0.3.0 # Tools for cloud deployment (specific to your pipeline)
+typer~=0.20.1           # Library for creating command-line applications
+fastapi-cli~=0.0.20     # Tools to run and manage FastAPI projects
+fastapi-cloud-cli~=0.3.1 # Tools for cloud deployment (specific to your pipeline)
 
 # ==============================================================================
 # 6. TESTING & MONITORING
 # Frameworks for ensuring code quality and production health.
 # ------------------------------------------------------------------------------
-pytest~=8.4.0           # Primary testing framework
+pytest~=8.4.2           # Primary testing framework
 pytest-asyncio~=1.2.0   # Plugin to make asynchronous tests easy with pytest
-sentry-sdk~=2.42.0      # For error tracking and performance monitoring
+sentry-sdk~=2.42.1      # For error tracking and performance monitoring
 
 # ==============================================================================
 # 7. LOGGING AND TERMINAL OUTPUT
 # Libraries for rich console output and debugging.
 # ------------------------------------------------------------------------------
 rich~=14.2.0            # For rich, formatted terminal output
-rich-toolkit~=0.15.0    # Extensions for the 'rich' library
+rich-toolkit~=0.15.1    # Extensions for the 'rich' library
 
 # ==============================================================================
 # 8. TRANSITIVE DEPENDENCY CONSTRAINTS
@@ -63,4 +63,4 @@ rich-toolkit~=0.15.0    # Extensions for the 'rich' library
 # ------------------------------------------------------------------------------
 filelock>=3.20.3        # Transitive dep via huggingface-hub
 aiohttp>=3.13.3         # Transitive dep via voyageai
-orjson>=3.11.5          # Transitive dep via langsmith (CVE fix)
+orjson>=3.11.7          # Transitive dep via langsmith (CVE fix)

@@ -394,7 +394,7 @@ class TestGetAllMovies:
 
         # Call the route handler
         from src.routers.movies import get_all_movies
-        with pytest.raises(HTTPException) as e: 
+        with pytest.raises(HTTPException) as e:
             await get_all_movies()
 
         # Assertions
