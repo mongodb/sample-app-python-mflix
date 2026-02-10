@@ -17,6 +17,10 @@ This is a full-stack movie browsing application built with Python FastAPI and Ne
     └── requirements.txt
 ```
 
+## Data Limitations
+
+The `sample_mflix` dataset contains movies released up to **2016**. Searching for movies from 2017 or later will return no results. This is a limitation of the sample dataset, not the application.
+
 ## Prerequisites
 
 - **Python 3.10** to **Python 3.13**

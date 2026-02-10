@@ -554,7 +554,7 @@ async def get_all_movies(
         filter_dict["title"] = {"$regex": title, "$options": "i"}
     if genre:
         filter_dict["genres"] = {"$regex": genre, "$options": "i"}
-    if year:
+    if isinstance(year, int):
         filter_dict["year"] = year
     if min_rating is not None or max_rating is not None:
         rating_filter = {}
@@ -593,8 +593,10 @@ async def get_all_movies(
                     movie["year"] = None
             
             movies.append(movie)
+
     # Return the results wrapped in a SuccessResponse
-    return create_success_response(movies, f"Found {len(movies)} movies.")
+    message = f"Found {len(movies)} movies."
+    return create_success_response(movies, message)
 
 """
     POST /api/movies/
@@ -1014,7 +1016,7 @@ async def aggregate_movies_recent_commented(
         # Filter movies to only those with valid year data
         {
             "$match": {
-                "year": {"$type": "number", "$gte": 1800, "$lte": 2030}
+                "year": {"$type": "number"}
             }
         }
     ]
@@ -1160,7 +1162,7 @@ async def aggregate_movies_by_year():
         # Tip: Filter early to reduce dataset size and improve performance
         {
             "$match": {
-                "year": {"$type": "number", "$gte": 1800, "$lte": 2030}
+                "year": {"$type": "number"}
             }
         },
 
@@ -1289,7 +1291,7 @@ async def aggregate_directors_most_movies(
         {
             "$match": {
                 "directors": {"$exists": True, "$ne": None, "$ne": []},  # Has directors array
-                "year": {"$type": "number", "$gte": 1800, "$lte": 2030}  # Valid year range
+                "year": {"$type": "number"}  # Valid year (numeric)
             }
         },
 
