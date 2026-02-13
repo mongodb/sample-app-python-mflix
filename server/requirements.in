@@ -64,3 +64,5 @@ rich-toolkit~=0.15.1    # Extensions for the 'rich' library
 filelock>=3.20.3        # Transitive dep via huggingface-hub
 aiohttp>=3.13.3         # Transitive dep via voyageai
 orjson>=3.11.7          # Transitive dep via langsmith (CVE fix)
+langchain-core>=1.2.11  # Transitive dep via langchain-text-splitters (CVE-2026-26013 fix)
+pillow>=12.1.1          # Transitive dep via voyageai (CVE-2026-25990 fix)
