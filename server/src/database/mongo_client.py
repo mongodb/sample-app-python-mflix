@@ -5,11 +5,13 @@ import voyageai
 
 load_dotenv()
 
-client = AsyncMongoClient(os.getenv("MONGO_URI"),
+DATABASE_NAME = "sample_mflix"
+
+client = AsyncMongoClient(os.getenv("MONGODB_URI"),
     # Set application name
     appname="sample-app-python-mflix")
 
-db = client[os.getenv("MONGO_DB")]
+db = client[DATABASE_NAME]
 
 voyage_api_key = os.getenv("VOYAGE_API_KEY")
 if voyage_api_key:

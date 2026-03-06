@@ -31,6 +31,16 @@ The `sample_mflix` dataset contains movies released up to **2016**. Searching fo
 - **Voyage AI API key** (For MongoDB Vector Search)
   - [Get a Voyage AI API key](https://www.voyageai.com/)
 
+## Verify Requirements
+
+Before getting started, run the verification script to check if you have the required runtime:
+
+```bash
+./check-requirements-python.sh --pre
+```
+
+This checks that Python and pip are installed with the correct versions. Run with `--help` for more options.
+
 ## Getting Started
 
 ### 1. Configure the Backend
@@ -50,21 +60,21 @@ cp .env.example .env
 Edit the `.env` file and set your MongoDB connection string:
 
 ```env
-# MongoDB Configuration
-MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/sample_mflix?retryWrites=true&w=majority
-MONGO_DB=sample_mflix
+# MongoDB Connection
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/sample_mflix?retryWrites=true&w=majority
 
-# Voyage AI Configuration
-# API key for Voyage AI embedding model (required for Vector Search)
+# Voyage AI Configuration (optional - required for Vector Search)
 VOYAGE_API_KEY=your_voyage_api_key
 
+# Server Configuration
+PORT=3001
+
 # CORS Configuration
-# Comma-separated list of allowed origins for CORS
-CORS_ORIGINS=http://localhost:3000,http://localhost:3001
+CORS_ORIGINS=http://localhost:3000
 ```
 
-**Note:** Replace `username`, `password`, and `cluster` with your actual MongoDB Atlas
-credentials.
+**Note:** Replace `<username>`, `<password>`, and `<cluster>` with your actual MongoDB Atlas
+credentials. Replace `your_voyage_api_key` with your key.
 
 Make a virtual environment:
 
@@ -195,6 +205,16 @@ To check code quality:
 cd client
 npm run lint
 ```
+
+## Verify Setup
+
+After completing the setup, run the full verification to ensure everything is configured correctly:
+
+```bash
+./check-requirements-python.sh
+```
+
+This checks your Python environment, dependencies, `.env` configuration, and frontend setup.
 
 ## Issues
 
