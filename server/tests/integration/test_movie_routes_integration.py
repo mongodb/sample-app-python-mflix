@@ -126,8 +126,8 @@ class TestMovieCRUDIntegration:
         get_response = await client.get(f"/api/movies/{movie_id}")
         assert get_response.status_code == 404
         error_data = get_response.json()
-        assert "detail" in error_data
-        assert "no movie found" in error_data["detail"].lower()
+        assert error_data["success"] is False
+        assert error_data["error"]["code"] == "MOVIE_NOT_FOUND"
 
         # No cleanup needed - movie already deleted
 
@@ -276,13 +276,12 @@ class TestBatchOperationsIntegration:
         assert delete_data["data"]["deletedCount"] == 3
 
         # Verify all movies were deleted
-        # Note: The API returns 200 with INTERNAL_SERVER_ERROR code, not 404
         for movie_id in multiple_test_movies:
             get_response = await client.get(f"/api/movies/{movie_id}")
             assert get_response.status_code == 404
             error_data = get_response.json()
-            assert "detail" in error_data
-            assert "no movie found" in error_data["detail"].lower()
+            assert error_data["success"] is False
+            assert error_data["error"]["code"] == "MOVIE_NOT_FOUND"
 
         # Note: Fixture cleanup will try to delete but movies are already gone
         # The fixture should handle this gracefully

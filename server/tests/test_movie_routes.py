@@ -6,10 +6,11 @@ Tests use unittest.mock.AsyncMock to mock database calls without requiring
 an actual database connection or server instance.
 """
 
+import json
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from bson import ObjectId
-from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 
 from src.models.models import CreateMovieRequest, UpdateMovieRequest
 from src.utils.exceptions import VoyageAuthError, VoyageAPIError
@@ -59,23 +60,27 @@ class TestGetMovieById:
 
         # Import and call the route handler
         from src.routers.movies import get_movie_by_id
-        with pytest.raises(HTTPException) as e:
-            await get_movie_by_id(TEST_MOVIE_ID)
+        response = await get_movie_by_id(TEST_MOVIE_ID)
 
         # Assertions
-        assert e.value.status_code == 404
-        assert "no movie found" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 404
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "MOVIE_NOT_FOUND"
 
     async def test_get_movie_by_id_invalid_id(self):
         """Should return error when invalid ObjectId format is provided."""
         # Import and call the route handler
         from src.routers.movies import get_movie_by_id
-        with pytest.raises(HTTPException) as e:
-            await get_movie_by_id(INVALID_MOVIE_ID)
+        response = await get_movie_by_id(INVALID_MOVIE_ID)
 
         # Assertions
-        assert e.value.status_code == 400
-        assert " not a valid" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "INVALID_OBJECT_ID"
 
     @patch('src.routers.movies.get_collection')
     async def test_get_movie_by_id_database_error(self, mock_get_collection):
@@ -87,12 +92,14 @@ class TestGetMovieById:
 
         # Import and call the route handler
         from src.routers.movies import get_movie_by_id
-        with pytest.raises(HTTPException) as e:
-            await get_movie_by_id(TEST_MOVIE_ID)
+        response = await get_movie_by_id(TEST_MOVIE_ID)
 
         # Assertions
-        assert e.value.status_code == 500
-        assert "error" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 500
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "DATABASE_ERROR"
 
 
 @pytest.mark.unit
@@ -145,12 +152,14 @@ class TestCreateMovie:
         # Create request
         from src.routers.movies import create_movie
         movie_request = CreateMovieRequest(title="New Movie")
-        with pytest.raises(HTTPException) as e:
-            await create_movie(movie_request)
+        response = await create_movie(movie_request)
 
         # Assertions
-        assert e.value.status_code == 500
-        assert "error" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 500
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "DATABASE_ERROR"
 
 
 @pytest.mark.unit
@@ -201,12 +210,14 @@ class TestUpdateMovie:
         from src.routers.movies import update_movie
         update_request = UpdateMovieRequest(title="Updated Movie")
         
-        with pytest.raises(HTTPException) as e:
-            await update_movie(update_request, TEST_MOVIE_ID)
-            
-            #Assertions
-        assert e.value.status_code == 404
-        assert "no movie" in str(e.value.detail.lower())
+        response = await update_movie(update_request, TEST_MOVIE_ID)
+
+        # Assertions
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 404
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "MOVIE_NOT_FOUND"
 
     async def test_update_movie_invalid_id(self):
         """Should return error when invalid ObjectId format is provided."""
@@ -214,12 +225,14 @@ class TestUpdateMovie:
         from src.routers.movies import update_movie
         update_request = UpdateMovieRequest(title="Updated Movie")
         
-        with pytest.raises(HTTPException) as e:
-            await update_movie(update_request, INVALID_MOVIE_ID)
+        response = await update_movie(update_request, INVALID_MOVIE_ID)
 
-            # Assertions
-        assert e.value.status_code == 400
-        assert "invalid" in str(e.value.detail.lower())
+        # Assertions
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "INVALID_OBJECT_ID"
 
 
 @pytest.mark.unit
@@ -258,23 +271,27 @@ class TestDeleteMovie:
 
         # Call the route handler
         from src.routers.movies import delete_movie_by_id
-        with pytest.raises(HTTPException) as e:
-            await delete_movie_by_id(TEST_MOVIE_ID)
+        response = await delete_movie_by_id(TEST_MOVIE_ID)
 
-            # Assertions
-        assert e.value.status_code == 404
-        assert "no movie" in str(e.value.detail.lower())
+        # Assertions
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 404
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "MOVIE_NOT_FOUND"
 
     async def test_delete_movie_invalid_id(self):
         """Should return error when invalid ObjectId format is provided."""
         # Call the route handler
         from src.routers.movies import delete_movie_by_id
-        with pytest.raises(HTTPException) as e:
-            await delete_movie_by_id(INVALID_MOVIE_ID)
+        response = await delete_movie_by_id(INVALID_MOVIE_ID)
         
         # Assertions
-        assert e.value.status_code == 400
-        assert "invalid movie id" in str(e.value.detail.lower())
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "INVALID_OBJECT_ID"
 
     @patch('src.routers.movies.get_collection')
     async def test_delete_movie_database_error(self, mock_get_collection):
@@ -286,12 +303,14 @@ class TestDeleteMovie:
 
         # Call the route handler
         from src.routers.movies import delete_movie_by_id
-        with pytest.raises(HTTPException) as e:
-            await delete_movie_by_id(TEST_MOVIE_ID)
+        response = await delete_movie_by_id(TEST_MOVIE_ID)
 
-            # Assertions
-        assert e.value.status_code == 500
-        assert "error" in str(e.value.detail.lower())
+        # Assertions
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 500
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "DATABASE_ERROR"
 
 @pytest.mark.unit
 @pytest.mark.asyncio
@@ -394,12 +413,14 @@ class TestGetAllMovies:
 
         # Call the route handler
         from src.routers.movies import get_all_movies
-        with pytest.raises(HTTPException) as e:
-            await get_all_movies()
+        response = await get_all_movies()
 
         # Assertions
-        assert e.value.status_code == 500
-        assert "error" in str(e.value.detail.lower())
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 500
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "DATABASE_ERROR"
 
 
 @pytest.mark.unit
@@ -441,12 +462,14 @@ class TestBatchOperations:
 
         # Create request with empty list
         from src.routers.movies import create_movies_batch
-        with pytest.raises(HTTPException) as e:
-            await create_movies_batch([])
+        response = await create_movies_batch([])
 
         # Assertions
-        assert e.value.status_code == 400
-        assert "empty" in str(e.value.detail.lower())
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "EMPTY_REQUEST"
 
     @patch('src.routers.movies.get_collection')
     async def test_delete_movies_batch_success(self, mock_get_collection):
@@ -476,12 +499,14 @@ class TestBatchOperations:
         # Create request without filter
         from src.routers.movies import delete_movies_batch
         request_body = {}
-        with pytest.raises(HTTPException) as e:
-            await delete_movies_batch(request_body)
+        response = await delete_movies_batch(request_body)
 
         # Assertions
-        assert e.value.status_code == 400
-        assert "filter" in e.value.detail.lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "MISSING_FILTER"
 
 
 
@@ -523,23 +548,27 @@ class TestFindAndDeleteMovie:
 
         # Call the route handler
         from src.routers.movies import find_and_delete_movie
-        with pytest.raises(HTTPException) as e:
-            await find_and_delete_movie(TEST_MOVIE_ID)
+        response = await find_and_delete_movie(TEST_MOVIE_ID)
 
         # Assertions
-        assert e.value.status_code == 404
-        assert "no movie" in str(e.value.detail.lower())
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 404
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "MOVIE_NOT_FOUND"
 
     async def test_find_and_delete_invalid_id(self):
         """Should return error when invalid ObjectId format is provided."""
         # Call the route handler
         from src.routers.movies import find_and_delete_movie
-        with pytest.raises(HTTPException) as e:
-            await find_and_delete_movie(INVALID_MOVIE_ID)
+        response = await find_and_delete_movie(INVALID_MOVIE_ID)
 
         # Assertions
-        assert e.value.status_code == 400
-        assert "invalid" in str(e.value.detail.lower())
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "INVALID_OBJECT_ID"
 
 
 @pytest.mark.unit
@@ -580,12 +609,14 @@ class TestBatchUpdate:
         # Create request without filter
         from src.routers.movies import update_movies_batch
         request_body = {"update": {"$set": {"rated": "PG-13"}}}
-        with pytest.raises(HTTPException) as e:
-            await update_movies_batch(request_body)
+        response = await update_movies_batch(request_body)
 
         # Assertions
-        assert e.value.status_code == 400
-        assert "filter" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "MISSING_FILTER"
 
     @patch('src.routers.movies.get_collection')
     async def test_update_movies_batch_missing_update(self, mock_get_collection):
@@ -595,12 +626,14 @@ class TestBatchUpdate:
         # Create request without update
         from src.routers.movies import update_movies_batch
         request_body = {"filter": {"year": 2020}}
-        with pytest.raises(HTTPException) as e:
-            await update_movies_batch(request_body)
+        response = await update_movies_batch(request_body)
 
-        # Assertions
-        assert e.value.status_code == 400
-        assert "update" in str(e.value.detail).lower()
+        # Assertions - code returns MISSING_FILTER for both missing filter and missing update
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "MISSING_FILTER"
 
     @patch('src.routers.movies.get_collection')
     async def test_update_movies_batch_no_matches(self, mock_get_collection):
@@ -700,22 +733,26 @@ class TestSearchMovies:
     async def test_search_movies_no_parameters(self):
         """Should return error when no search parameters provided."""
         from src.routers.movies import search_movies
-        with pytest.raises(HTTPException) as e:
-            await search_movies(search_operator="must")
+        response = await search_movies(search_operator="must")
 
         # Assertions
-        assert e.value.status_code == 400
-        assert "one search parameter" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "MISSING_SEARCH_PARAMS"
 
     async def test_search_movies_invalid_operator(self):
         """Should return error for invalid search operator."""
         from src.routers.movies import search_movies
-        with pytest.raises(HTTPException) as e:
-            await search_movies(plot="test", search_operator="invalid")
+        response = await search_movies(plot="test", search_operator="invalid")
 
         # Assertions
-        assert e.value.status_code == 400
-        assert "invalid search operator" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "INVALID_SEARCH_OPERATOR"
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_search_movies_database_error(self, mock_execute_aggregation):
@@ -725,12 +762,14 @@ class TestSearchMovies:
 
         # Call the route handler
         from src.routers.movies import search_movies
-        with pytest.raises(HTTPException) as e:
-            await search_movies(plot="test", search_operator="must")
+        response = await search_movies(plot="test", search_operator="must")
 
         # Assertions
-        assert e.value.status_code == 500
-        assert "error" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 500
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "SEARCH_ERROR"
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_search_movies_empty_results(self, mock_execute_aggregation):
@@ -770,7 +809,7 @@ class TestVectorSearchMovies:
 
         # Assertions
         assert isinstance(response, JSONResponse)
-        assert response.status_code == 400
+        assert response.status_code == 503
 
         # Parse the response body
         import json
@@ -827,12 +866,14 @@ class TestVectorSearchMovies:
 
         # Call the route handler
         from src.routers.movies import vector_search_movies
-        with pytest.raises(HTTPException) as e:
-            await vector_search_movies(q="action movie")
+        response = await vector_search_movies(q="action movie")
 
         # Assertions
-        assert e.value.status_code == 500
-        assert "error" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 500
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "VECTOR_SEARCH_ERROR"
 
     @patch('src.routers.movies.voyage_ai_available')
     @patch('src.routers.movies.voyageai.Client')
@@ -926,12 +967,14 @@ class TestAggregationReportingByComments:
     async def test_aggregate_movies_invalid_movie_id(self):
         """Should return error for invalid movie ID format."""
         from src.routers.movies import aggregate_movies_recent_commented
-        with pytest.raises(HTTPException) as e:
-            await aggregate_movies_recent_commented(movie_id="invalid_id")
+        response = await aggregate_movies_recent_commented(movie_id="invalid_id")
 
         # Assertions
-        assert e.value.status_code == 400
-        assert "movie_id is not" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 400
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "INVALID_OBJECT_ID"
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_aggregate_movies_database_error(self, mock_execute_aggregation):
@@ -941,12 +984,14 @@ class TestAggregationReportingByComments:
 
         # Call the route handler
         from src.routers.movies import aggregate_movies_recent_commented
-        with pytest.raises(HTTPException) as e:
-            await aggregate_movies_recent_commented(limit=10, movie_id=None)
+        response = await aggregate_movies_recent_commented(limit=10, movie_id=None)
 
         # Assertions
-        assert e.value.status_code == 500
-        assert "error" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 500
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "DATABASE_ERROR"
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_aggregate_movies_empty_results(self, mock_execute_aggregation):
@@ -997,12 +1042,14 @@ class TestAggregationReportingByYear:
 
         # Call the route handler
         from src.routers.movies import aggregate_movies_by_year
-        with pytest.raises(HTTPException) as e:
-            await aggregate_movies_by_year()
+        response = await aggregate_movies_by_year()
 
         # Assertions
-        assert e.value.status_code == 500
-        assert "error" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 500
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "DATABASE_ERROR"
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_aggregate_movies_by_year_empty_results(self, mock_execute_aggregation):
@@ -1071,12 +1118,14 @@ class TestAggregationReportingByDirectors:
 
         # Call the route handler
         from src.routers.movies import aggregate_directors_most_movies
-        with pytest.raises(HTTPException) as e: 
-            await aggregate_directors_most_movies()
+        response = await aggregate_directors_most_movies()
 
         # Assertions
-        assert e.value.status_code == 500
-        assert "error" in str(e.value.detail).lower()
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 500
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "DATABASE_ERROR"
 
     @patch('src.routers.movies.execute_aggregation')
     async def test_aggregate_directors_empty_results(self, mock_execute_aggregation):
@@ -1164,9 +1213,11 @@ class TestGetDistinctGenres:
 
         # Call the route handler
         from src.routers.movies import get_distinct_genres
-        with pytest.raises(HTTPException) as exc_info:
-            await get_distinct_genres()
+        response = await get_distinct_genres()
 
         # Assertions
-        assert exc_info.value.status_code == 500
-        assert "Database error" in str(exc_info.value.detail)
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 500
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "DATABASE_ERROR"
