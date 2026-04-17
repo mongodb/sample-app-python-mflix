@@ -61,7 +61,7 @@ Edit the `.env` file and set your MongoDB connection string:
 
 ```env
 # MongoDB Connection
-MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/sample_mflix?retryWrites=true&w=majority
+MONGODB_URI="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/sample_mflix?retryWrites=true&w=majority"
 
 # Voyage AI Configuration (optional - required for Vector Search)
 VOYAGE_API_KEY=your_voyage_api_key
