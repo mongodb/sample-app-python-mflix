@@ -22,7 +22,7 @@ PyYAML~=6.0.3           # For handling YAML configuration or data
 # 3. DATABASE & CONNECTIVITY
 # Database driver and necessary utilities.
 # ------------------------------------------------------------------------------
-pymongo~=4.16.0         # MongoDB driver
+pymongo~=4.17.0         # MongoDB driver
 dnspython~=2.8.0        # Required for SRV record lookups by pymongo (e.g., MongoDB Atlas)
 
 # ==============================================================================

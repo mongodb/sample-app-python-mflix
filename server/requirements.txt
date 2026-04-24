@@ -151,7 +151,7 @@ pygments==2.19.2
     # via
     #   pytest
     #   rich
-pymongo==4.16.0
+pymongo==4.17.0
     # via -r requirements.in
 pytest==8.4.2
     # via
