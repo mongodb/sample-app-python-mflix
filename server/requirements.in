@@ -14,7 +14,7 @@ watchfiles~=1.1.1       # For hot-reloading in development
 # Primary libraries for data models and environment config.
 # ------------------------------------------------------------------------------
 pydantic~=2.12.5        # Data validation and settings management
-python-dotenv~=1.1.1    # For loading configuration from .env files
+python-dotenv>=1.2.2    # For loading configuration from .env files (CVE-2026-28684)
 python-multipart>=0.0.22 # For parsing form data and file uploads
 PyYAML~=6.0.3           # For handling YAML configuration or data
 
@@ -22,7 +22,7 @@ PyYAML~=6.0.3           # For handling YAML configuration or data
 # 3. DATABASE & CONNECTIVITY
 # Database driver and necessary utilities.
 # ------------------------------------------------------------------------------
-pymongo~=4.16.0         # MongoDB driver
+pymongo~=4.17.0         # MongoDB driver
 dnspython~=2.8.0        # Required for SRV record lookups by pymongo (e.g., MongoDB Atlas)
 
 # ==============================================================================
@@ -65,5 +65,5 @@ filelock>=3.20.3        # Transitive dep via huggingface-hub
 aiohttp>=3.13.4         # Transitive dep via voyageai (CVE-2026-34525)
 orjson>=3.11.7          # Transitive dep via langsmith (CVE fix)
 langchain-core>=1.2.11  # Transitive dep via langchain-text-splitters (CVE-2026-26013 fix)
-pillow>=12.1.1          # Transitive dep via voyageai (CVE-2026-25990 fix)
+pillow>=12.2.0          # Transitive dep via voyageai (Pillow 12.2.0 security fixes)
 requests>=2.33.0        # Transitive dep via langsmith/voyageai (CVE-2026-25645 fix)
