@@ -127,7 +127,7 @@ packaging==26.0
     #   langchain-core
     #   langsmith
     #   pytest
-pillow==12.1.1
+pillow==12.2.0
     # via
     #   -r requirements.in
     #   voyageai
@@ -159,7 +159,7 @@ pytest==8.4.2
     #   pytest-asyncio
 pytest-asyncio==1.2.0
     # via -r requirements.in
-python-dotenv==1.1.1
+python-dotenv==1.2.2
     # via
     #   -r requirements.in
     #   uvicorn
