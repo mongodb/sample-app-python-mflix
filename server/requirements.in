@@ -2,8 +2,8 @@
 # 1. CORE WEB FRAMEWORK & ASGI SERVER
 # FastAPI and its main components.
 # ------------------------------------------------------------------------------
-fastapi~=0.120.4        # The main web framework
-starlette~=0.49.3       # FastAPI's underlying ASGI toolkit
+fastapi~=0.136.3        # The main web framework (CVE-2026-48710 / PYSEC-2026-161)
+starlette>=1.0.1        # Host header validation fix (PYSEC-2026-161)
 uvicorn~=0.38.0         # Production-ready ASGI server
 uvloop~=0.22.1          # Optional: High-performance event loop for uvicorn
 websockets~=15.0.1      # For WebSocket support
@@ -15,7 +15,7 @@ watchfiles~=1.1.1       # For hot-reloading in development
 # ------------------------------------------------------------------------------
 pydantic~=2.12.5        # Data validation and settings management
 python-dotenv>=1.2.2    # For loading configuration from .env files (CVE-2026-28684)
-python-multipart>=0.0.22 # For parsing form data and file uploads
+python-multipart>=0.0.29 # For parsing form data and file uploads (Dependabot #62)
 PyYAML~=6.0.3           # For handling YAML configuration or data
 
 # ==============================================================================
@@ -32,7 +32,7 @@ dnspython~=2.8.0        # Required for SRV record lookups by pymongo (e.g., Mong
 httpx~=0.28.1           # Asynchronous HTTP client for requests to external APIs
 email-validator~=2.3.0  # Utility for validating email addresses
 voyageai~=0.3.7         # Vector embeddings API client
-urllib3>=2.6.3          # HTTP library
+urllib3>=2.7.0          # HTTP library (Dependabot #66, #67)
 
 # ==============================================================================
 # 5. CLI & DEVELOPMENT TOOLS
@@ -46,8 +46,8 @@ fastapi-cloud-cli~=0.3.1 # Tools for cloud deployment (specific to your pipeline
 # 6. TESTING & MONITORING
 # Frameworks for ensuring code quality and production health.
 # ------------------------------------------------------------------------------
-pytest~=8.4.2           # Primary testing framework
-pytest-asyncio~=1.2.0   # Plugin to make asynchronous tests easy with pytest
+pytest~=9.0.3           # Primary testing framework (CVE-2025-71176 fix)
+pytest-asyncio~=1.3.0   # Plugin to make asynchronous tests easy with pytest (pytest 9 compat)
 sentry-sdk~=2.42.1      # For error tracking and performance monitoring
 
 # ==============================================================================
@@ -62,8 +62,12 @@ rich-toolkit~=0.15.1    # Extensions for the 'rich' library
 # Minimum versions for indirect dependencies.
 # ------------------------------------------------------------------------------
 filelock>=3.20.3        # Transitive dep via huggingface-hub
-aiohttp>=3.13.4         # Transitive dep via voyageai (CVE-2026-34525)
+aiohttp>=3.14.0         # Transitive dep via voyageai (Dependabot #74, #75)
 orjson>=3.11.7          # Transitive dep via langsmith (CVE fix)
-langchain-core>=1.2.11  # Transitive dep via langchain-text-splitters (CVE-2026-26013 fix)
+langchain-core>=1.4.0   # Transitive dep via langchain-text-splitters (Dependabot #63)
+langsmith>=0.8.5        # Transitive dep via langchain-core (Dependabot #68)
+langchain-text-splitters>=1.1.2 # Transitive dep via langchain (CVE-2026-41481)
+pygments>=2.20.0        # Transitive dep via rich/pytest (CVE-2026-4539)
 pillow>=12.2.0          # Transitive dep via voyageai (Pillow 12.2.0 security fixes)
 requests>=2.33.0        # Transitive dep via langsmith/voyageai (CVE-2026-25645 fix)
+idna>=3.15              # Transitive dep via httpx/requests (Dependabot #70)
