@@ -156,13 +156,17 @@ async def voyage_auth_error_handler(request: Request, exc: VoyageAuthError):
 
 @app.exception_handler(VoyageAPIError)
 async def voyage_api_error_handler(request: Request, exc: VoyageAPIError):
-    """Handle Voyage AI API errors with 503 status."""
+    """Handle Voyage AI API errors using the exception's HTTP status code."""
+    client_messages = {
+        400: "Invalid vector search request.",
+        429: "Vector search rate limit exceeded. Please try again later.",
+        503: "Vector search service unavailable.",
+    }
     return JSONResponse(
-        status_code=503,
+        status_code=exc.status_code,
         content=create_error_response(
-            message="Vector search service unavailable",
+            message=client_messages.get(exc.status_code, "Vector search failed."),
             code="VOYAGE_API_ERROR",
-            details=exc.message
         )
     )
 

@@ -4,7 +4,7 @@ from src.database.mongo_client import get_collection, voyage_ai_available
 from src.models.models import VectorSearchResult, CreateMovieRequest, Movie, SuccessResponse, UpdateMovieRequest, SearchMoviesResponse
 from typing import Any, List, Optional
 from src.utils.successResponse import create_success_response
-from src.utils.errorResponse import create_error_response
+from src.utils.errorResponse import create_error_response, server_error_response
 from src.utils.response_docs import (
     VECTOR_SEARCH_RESPONSES, 
     OBJECTID_VALIDATION_RESPONSES, 
@@ -14,6 +14,7 @@ from src.utils.response_docs import (
     CRUD_WITH_OBJECTID_RESPONSES
 )
 from src.utils.exceptions import VoyageAuthError, VoyageAPIError
+from src.utils.logger import logger
 from bson import ObjectId, errors
 import re
 from bson.errors import InvalidId
@@ -276,13 +277,11 @@ async def search_movies(
     # Execute the aggregation pipeline using the helper function
     try:
         results = await execute_aggregation(aggregation_pipeline)
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"An error occurred while performing the search: {str(e)}",
-                code="SEARCH_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "An error occurred while performing the search.",
+            "SEARCH_ERROR",
+            log_context="search_movies",
         )
         
 
@@ -443,17 +442,11 @@ async def vector_search_movies(
     except VoyageAPIError:
         # Re-raise custom exceptions to be handled by the exception handlers
         raise
-    except Exception as e:
-        # Log the error for debugging
-        print(f"Vector search error: {str(e)}")
-
-        # Handle generic errors
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"Error performing vector search: {str(e)}",
-                code="VECTOR_SEARCH_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "Error performing vector search.",
+            "VECTOR_SEARCH_ERROR",
+            log_context="vector_search_movies",
         )
 
 """
@@ -480,13 +473,11 @@ async def get_distinct_genres():
         # Use distinct() to get all unique values from the genres array field
         # MongoDB automatically flattens array fields when using distinct()
         genres = await movies_collection.distinct("genres")
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"Database error occurred: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "Database error occurred.",
+            "DATABASE_ERROR",
+            log_context="get_distinct_genres",
         )
 
     # Filter out null/empty values and sort alphabetically
@@ -529,13 +520,11 @@ async def get_movie_by_id(id: str):
     movies_collection = get_collection("movies")
     try:
         movie = await movies_collection.find_one({"_id": object_id})
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"Database error occurred: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "Database error occurred.",
+            "DATABASE_ERROR",
+            log_context="get_movie_by_id",
         )
         
 
@@ -619,29 +608,27 @@ async def get_all_movies(
 
     try:
         result = movies_collection.find(filter_dict).sort(sort).skip(skip).limit(limit)
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"An error occurred while fetching movies. {str(e)}",
-                code="DATABASE_ERROR"
-            )
+
+        movies = []
+
+        async for movie in result:
+            if "title" in movie:
+                movie["_id"] = str(movie["_id"]) # Convert ObjectId to string
+                # Ensure that the year field contains int value.
+                if "year" in movie and not isinstance(movie["year"], int):
+                    cleaned_year = re.sub(r"\D", "", str(movie["year"]))
+                    try:
+                        movie["year"] = int(cleaned_year) if cleaned_year else None
+                    except ValueError:
+                        movie["year"] = None
+
+                movies.append(movie)
+    except Exception:
+        return server_error_response(
+            "An error occurred while fetching movies.",
+            "DATABASE_ERROR",
+            log_context="get_all_movies",
         )
-
-    movies = []
-
-    async for movie in result:
-        if "title" in movie:
-            movie["_id"] = str(movie["_id"]) # Convert ObjectId to string
-            # Ensure that the year field contains int value.
-            if "year" in movie and not isinstance(movie["year"], int):
-                cleaned_year = re.sub(r"\D", "", str(movie["year"]))
-                try:
-                    movie["year"] = int(cleaned_year) if cleaned_year else None
-                except ValueError:
-                    movie["year"] = None
-            
-            movies.append(movie)
 
     # Return the results wrapped in a SuccessResponse
     message = f"Found {len(movies)} movies."
@@ -671,13 +658,11 @@ async def create_movie(movie: CreateMovieRequest):
     movies_collection = get_collection("movies")
     try:
         result = await movies_collection.insert_one(movie_data)
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"Database error occurred: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "Database error occurred.",
+            "DATABASE_ERROR",
+            log_context="create_movie_insert",
         )
 
     # Verify that the document was created before querying it
@@ -693,13 +678,11 @@ async def create_movie(movie: CreateMovieRequest):
     try:
         # Retrieve the created document to return complete data
         created_movie = await movies_collection.find_one({"_id": result.inserted_id})
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"Database error occurred: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "Database error occurred.",
+            "DATABASE_ERROR",
+            log_context="create_movie_fetch",
         )
 
     if created_movie is None:
@@ -777,13 +760,11 @@ async def create_movies_batch(movies: List[CreateMovieRequest]) ->SuccessRespons
             },
             f"Successfully created {len(result.inserted_ids)} movies."
         )
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"Database error occurred: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "Database error occurred.",
+            "DATABASE_ERROR",
+            log_context="create_movies_batch",
         )
 
 """
@@ -843,13 +824,11 @@ async def update_movie(
             {"_id": movie_id},
             {"$set":update_dict}
         )
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"An error occurred while updating the movie: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "An error occurred while updating the movie.",
+            "DATABASE_ERROR",
+            log_context="update_movie",
         )
 
     if result.matched_count == 0:
@@ -920,13 +899,11 @@ async def update_movies_batch(
 
     try:
         result = await movies_collection.update_many(filter_data, {"$set": update_data})
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"An error occurred while updating movies: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "An error occurred while updating movies.",
+            "DATABASE_ERROR",
+            log_context="update_movies_batch",
         )
 
     return create_success_response({
@@ -968,13 +945,11 @@ async def delete_movie_by_id(id: str):
     try:
         # Use deleteOne() to remove a single document
         result = await movies_collection.delete_one({"_id": object_id})
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"Database error occurred: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "Database error occurred.",
+            "DATABASE_ERROR",
+            log_context="delete_movie_by_id",
         )
 
     if result.deleted_count == 0:
@@ -1043,13 +1018,11 @@ async def delete_movies_batch(request_body: dict = Body(...)) -> SuccessResponse
 
     try:
         result = await movies_collection.delete_many(filter_data)
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"An error occurred while deleting movies: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "An error occurred while deleting movies.",
+            "DATABASE_ERROR",
+            log_context="delete_movies_batch",
         )
 
     return create_success_response(
@@ -1092,13 +1065,11 @@ async def find_and_delete_movie(id: str):
     # or ensure the document exists before deletion
     try:
         deleted_movie = await movies_collection.find_one_and_delete({"_id": object_id})
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"Database error occurred: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "Database error occurred.",
+            "DATABASE_ERROR",
+            log_context="find_and_delete_movie",
         )
 
     if deleted_movie is None:
@@ -1251,13 +1222,11 @@ async def aggregate_movies_recent_commented(
     # Execute the aggregation
     try:
         results = await execute_aggregation(pipeline)
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"Database error occurred during aggregation: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "Database error occurred during aggregation.",
+            "DATABASE_ERROR",
+            log_context="aggregate_movies_recent_commented",
         )
 
     # Convert ObjectId to string for response
@@ -1387,13 +1356,11 @@ async def aggregate_movies_by_year():
     # Execute the aggregation
     try:
         results = await execute_aggregation(pipeline)
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"Database error occurred during aggregation: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "Database error occurred during aggregation.",
+            "DATABASE_ERROR",
+            log_context="aggregate_movies_by_year",
         )
 
     return create_success_response(
@@ -1491,13 +1458,11 @@ async def aggregate_directors_most_movies(
     # Execute the aggregation
     try:
         results = await execute_aggregation(pipeline)
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content=create_error_response(
-                message=f"Database error occurred during aggregation: {str(e)}",
-                code="DATABASE_ERROR"
-            )
+    except Exception:
+        return server_error_response(
+            "Database error occurred during aggregation.",
+            "DATABASE_ERROR",
+            log_context="aggregate_directors_most_movies",
         )
 
     return create_success_response(
@@ -1584,22 +1549,23 @@ def get_embedding(data, input_type = "document", client=None):
             data, model = model, output_dimension = outputDimension, input_type = input_type
         ).embeddings
         return embeddings[0]
-    except voyage_error.AuthenticationError as e:
+    except voyage_error.AuthenticationError:
         # Handle authentication errors (401) from Voyage AI SDK
+        logger.exception("Voyage AI authentication failed")
         raise VoyageAuthError("Invalid Voyage AI API key. Please check your VOYAGE_API_KEY in the .env file")
-    except voyage_error.InvalidRequestError as e:
-        # Handle invalid request errors (400) - often due to malformed API key
-        raise VoyageAPIError(f"Invalid request to Voyage AI API: {str(e)}", 400)
-    except voyage_error.RateLimitError as e:
-        # Handle rate limiting errors (429)
-        raise VoyageAPIError(f"Voyage AI API rate limit exceeded: {str(e)}", 429)
-    except voyage_error.ServiceUnavailableError as e:
-        # Handle service unavailable errors (502, 503, 504)
-        raise VoyageAPIError(f"Voyage AI service unavailable: {str(e)}", 503)
+    except voyage_error.InvalidRequestError:
+        logger.exception("Voyage AI invalid request")
+        raise VoyageAPIError("Invalid request to Voyage AI API.", 400)
+    except voyage_error.RateLimitError:
+        logger.exception("Voyage AI rate limit")
+        raise VoyageAPIError("Voyage AI API rate limit exceeded.", 429)
+    except voyage_error.ServiceUnavailableError:
+        logger.exception("Voyage AI service unavailable")
+        raise VoyageAPIError("Voyage AI service unavailable.", 503)
     except voyage_error.VoyageError as e:
-        # Handle any other Voyage AI SDK errors
-        raise VoyageAPIError(f"Voyage AI API error: {str(e)}", getattr(e, 'http_status', 500) or 500)
-    except Exception as e:
-        # Handle unexpected errors
-        raise VoyageAPIError(f"Failed to generate embedding: {str(e)}", 500)
+        logger.exception("Voyage AI API error")
+        raise VoyageAPIError("Voyage AI API error.", getattr(e, "http_status", 500) or 500)
+    except Exception:
+        logger.exception("Failed to generate embedding")
+        raise VoyageAPIError("Failed to generate embedding.", 500)
 
