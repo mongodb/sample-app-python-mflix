@@ -422,6 +422,27 @@ class TestGetAllMovies:
         assert body["success"] is False
         assert body["error"]["code"] == "DATABASE_ERROR"
 
+    @patch('src.routers.movies.get_collection')
+    async def test_get_all_movies_cursor_iteration_error(self, mock_get_collection):
+        """Should return error when cursor iteration fails."""
+        mock_collection = MagicMock()
+        mock_cursor = MagicMock()
+        mock_cursor.sort.return_value = mock_cursor
+        mock_cursor.skip.return_value = mock_cursor
+        mock_cursor.limit.return_value = mock_cursor
+        mock_cursor.__aiter__.side_effect = Exception("Cursor iteration failed")
+        mock_collection.find.return_value = mock_cursor
+        mock_get_collection.return_value = mock_collection
+
+        from src.routers.movies import get_all_movies
+        response = await get_all_movies()
+
+        assert isinstance(response, JSONResponse)
+        assert response.status_code == 500
+        body = json.loads(response.body.decode())
+        assert body["success"] is False
+        assert body["error"]["code"] == "DATABASE_ERROR"
+
 
 @pytest.mark.unit
 @pytest.mark.asyncio
