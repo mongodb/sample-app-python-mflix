@@ -5,7 +5,7 @@
 #    pip-compile --no-annotate --output-file=requirements.txt --strip-extras requirements.in
 #
 aiohappyeyeballs==2.6.2
-aiohttp==3.14.1
+aiohttp==3.14.3
 aiolimiter==1.2.1
 aiosignal==1.4.0
 annotated-doc==0.0.4
